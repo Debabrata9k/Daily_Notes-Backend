@@ -5,6 +5,7 @@ import java.util.List;
 import org.modelmapper.ModelMapper;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
@@ -46,7 +47,10 @@ public class NoteService {
                 .map(note -> modelMapper.map(note, NoteDto.class))
                 .toList();
     }
-    @CacheEvict(value = {"notes", "notes_search"}, allEntries = true)
+    @Caching(evict = {
+        @CacheEvict(value = "notes", key = "#root.target.getCurrentUser().id"),
+        @CacheEvict(value = "notes_search", allEntries = true)
+    })
     public NoteDto createNewNote(AddNoteDto addNoteDto) {
         User user = getCurrentUser();
         Note note = modelMapper.map(addNoteDto, Note.class);
@@ -54,7 +58,10 @@ public class NoteService {
         Note savedNote = noteRepository.save(note);
         return modelMapper.map(savedNote, NoteDto.class);
     }
-    @CacheEvict(value = {"notes", "notes_search"}, allEntries = true)
+    @Caching(evict = {
+        @CacheEvict(value = "notes", key = "#root.target.getCurrentUser().id"),
+        @CacheEvict(value = "notes_search", allEntries = true)
+    })
     public NoteDto updateNote(Long id, AddNoteDto addNoteDto) {
         User user = getCurrentUser();
         Note note = noteRepository.findByIdAndUser(id, user)
@@ -64,7 +71,10 @@ public class NoteService {
         Note updatedNote = noteRepository.save(note);
         return modelMapper.map(updatedNote, NoteDto.class);
     }
-    @CacheEvict(value = {"notes", "notes_search"}, allEntries = true)
+    @Caching(evict = {
+        @CacheEvict(value = "notes", key = "#root.target.getCurrentUser().id"),
+        @CacheEvict(value = "notes_search", allEntries = true)
+    })
     public void deleteNote(Long id) {
         User user = getCurrentUser();
         Note note = noteRepository.findByIdAndUser(id, user)

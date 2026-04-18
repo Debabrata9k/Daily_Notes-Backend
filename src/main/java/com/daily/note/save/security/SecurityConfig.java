@@ -42,7 +42,7 @@ public class SecurityConfig {
                         response.sendRedirect("dailynote://login?error=true");
                     })
                 )
-                .addFilterBefore(rateLimitInterceptor, UsernamePasswordAuthenticationFilter.class) ✅
+                .addFilterBefore(rateLimitInterceptor, UsernamePasswordAuthenticationFilter.class)
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
                 .formLogin(form -> form.disable())
                 .httpBasic(basic -> basic.disable());

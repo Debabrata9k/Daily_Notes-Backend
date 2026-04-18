@@ -2,6 +2,7 @@ package com.daily.note.save.service;
 
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import lombok.RequiredArgsConstructor;
 
@@ -11,6 +12,7 @@ public class EmailService {
 
     private final JavaMailSender mailSender;
 
+    @Async
     public void sendOtp(String to, String otp) {
         SimpleMailMessage mail = new SimpleMailMessage();
         mail.setTo(to);

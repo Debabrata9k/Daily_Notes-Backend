@@ -11,8 +11,10 @@ import com.daily.note.save.dto.LoginRequestDto;
 import com.daily.note.save.dto.LoginResponseDto;
 import com.daily.note.save.dto.ResetPasswordDto;
 import com.daily.note.save.dto.SignupRequestDto;
+import com.daily.note.save.dto.SignupResposeDto;
 // import com.daily.note.save.dto.SignupResposeDto;
 import com.daily.note.save.dto.VerifyOtpDto;
+import com.daily.note.save.dto.Verifydto;
 import com.daily.note.save.security.AuthService;
 
 import lombok.RequiredArgsConstructor;
@@ -24,17 +26,16 @@ public class AuthController {
     private final AuthService authService;
 
     @PostMapping("/signup")
-    public ResponseEntity<String> signup(@RequestBody SignupRequestDto signupRequestDto) {
+    public ResponseEntity<SignupResposeDto> signup(@RequestBody SignupRequestDto signupRequestDto) {
         authService.signup(signupRequestDto);
-        return ResponseEntity.ok("OTP sent to your email");
-        // return ResponseEntity.ok(authService.signup(signupRequestDto));
+        return ResponseEntity.ok(authService.signup(signupRequestDto));
     }
     @PostMapping("/login")
     public ResponseEntity<LoginResponseDto> login(@RequestBody LoginRequestDto loginRequestDto) {
         return ResponseEntity.ok(authService.login(loginRequestDto)); 
     }
     @PostMapping("/verify-otp")
-    public ResponseEntity<String> verifyOtp(@RequestBody VerifyOtpDto dto) {
+    public ResponseEntity<Verifydto> verifyOtp(@RequestBody VerifyOtpDto dto) {
         return ResponseEntity.ok(authService.verifyOtp(dto));
     }
     @PostMapping("/resend-otp")

@@ -12,10 +12,10 @@ import com.daily.note.save.dto.ResetPasswordDto;
 import com.daily.note.save.dto.SignupRequestDto;
 import com.daily.note.save.dto.SignupResposeDto;
 import com.daily.note.save.dto.VerifyOtpDto;
+import com.daily.note.save.dto.Verifydto;
 import com.daily.note.save.entity.User;
 import com.daily.note.save.repository.UserRepository;
 import com.daily.note.save.service.EmailService;
-
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -34,27 +34,36 @@ public class AuthService {
         );
     }
 
-    public SignupResposeDto signup(SignupRequestDto signupRequestDto) {
-        User existingUser = userRepository.findByEmail(signupRequestDto.getEmail()).orElse(null);
-        if (existingUser != null) {
-            throw new IllegalArgumentException("User already exists with email: " + signupRequestDto.getEmail());
-        }
-        String encodedPassword = passwordEncoder.encode(signupRequestDto.getPassword());
-        String otp = generateOtp();
-        User user = new User();
-        user.setName(signupRequestDto.getName());
-        user.setEmail(signupRequestDto.getEmail());
-        user.setPassword(encodedPassword);
-        //OTP fields
-        user.setOtp(otp);
-        user.setVerified(false);
-        user.setOtpExpiry(java.time.LocalDateTime.now().plusMinutes(5));
-        User newUser = userRepository.save(user);
-        //send OTP on email
-        emailService.sendOtp(newUser.getEmail(), otp);
-        return modelMapper.map(newUser, SignupResposeDto.class);
-    }
+    public SignupResposeDto signup(SignupRequestDto dto) {
+        User user = userRepository.findByEmail(dto.getEmail()).orElse(null);
 
+        String otp = generateOtp();
+
+        if (user != null) {
+            if (user.isVerified()) {
+                throw new RuntimeException("User already exists");
+            }
+
+            user.setOtp(otp);
+            user.setOtpExpiry(LocalDateTime.now().plusMinutes(5));
+            user.setName(dto.getName());
+            user.setPassword(passwordEncoder.encode(dto.getPassword()));
+
+        } else {
+            user = new User();
+            user.setName(dto.getName());
+            user.setEmail(dto.getEmail());
+            user.setPassword(passwordEncoder.encode(dto.getPassword()));
+            user.setVerified(false);
+            user.setOtp(otp);
+            user.setOtpExpiry(LocalDateTime.now().plusMinutes(5));
+        }
+
+        User savedUser = userRepository.save(user);
+        emailService.sendOtp(savedUser.getEmail(), otp);
+
+        return modelMapper.map(savedUser, SignupResposeDto.class);
+    }
     public LoginResponseDto login(LoginRequestDto loginRequestDto) {
         User user = userRepository.findByEmail(loginRequestDto.getEmail())
                 .orElseThrow(() -> new IllegalArgumentException("User not found with email: " + loginRequestDto.getEmail()));
@@ -68,7 +77,7 @@ public class AuthService {
         return new LoginResponseDto(token, user.getName(), user.getEmail());
     }
 
-    public String verifyOtp(VerifyOtpDto dto) {
+    public Verifydto verifyOtp(VerifyOtpDto dto) {
         User user = userRepository.findByEmail(dto.getEmail())
                 .orElseThrow(() -> new RuntimeException("User not found"));
         if (user.getOtp() == null || user.getOtpExpiry() == null) {
@@ -84,7 +93,7 @@ public class AuthService {
         user.setOtp(null);
         user.setOtpExpiry(null);
         userRepository.save(user);
-        return "Email verified successfully";
+        return new Verifydto("Email verified successfully");
     }
 
     public String resendOtp(String email) {

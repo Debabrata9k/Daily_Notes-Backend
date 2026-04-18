@@ -32,31 +32,52 @@ public class JwtAuthFilter extends OncePerRequestFilter {
             FilterChain filterChain
     ) throws ServletException, IOException {
 
-        log.info("Incoming request: {}", request.getRequestURI());
+        String path = request.getRequestURI();
+        log.info("Incoming request: {}", path);
+
+        // IMPORTANT: Skip auth endpoints (login, signup, etc.)
+        if (path.startsWith("/api/auth")) {
+            filterChain.doFilter(request, response);
+            return;
+        }
 
         final String header = request.getHeader("Authorization");
 
-        if (header != null && header.startsWith("Bearer ")) {
-            String token = header.substring(7);
+        // Debug log (very important for you now)
+        log.info("Authorization header: {}", header);
 
-            String email = jwtUtil.validateTokenAndGetEmail(token);
+        try {
 
-            if (email != null &&
-                    SecurityContextHolder.getContext().getAuthentication() == null) {
+            if (header != null && header.startsWith("Bearer ")) {
 
-                User user = userRepository.findByEmail(email).orElse(null);
+                String token = header.substring(7);
 
-                if (user != null) {
-                    UsernamePasswordAuthenticationToken auth =
-                            new UsernamePasswordAuthenticationToken(
-                                    user,
-                                    null,
-                                    user.getAuthorities()
-                            );
+                String email = jwtUtil.validateTokenAndGetEmail(token);
 
-                    SecurityContextHolder.getContext().setAuthentication(auth);
+                if (email != null &&
+                        SecurityContextHolder.getContext().getAuthentication() == null) {
+
+                    User user = userRepository.findByEmail(email).orElse(null);
+
+                    if (user != null) {
+                        UsernamePasswordAuthenticationToken auth =
+                                new UsernamePasswordAuthenticationToken(
+                                        user,
+                                        null,
+                                        user.getAuthorities()
+                                );
+
+                        SecurityContextHolder.getContext().setAuthentication(auth);
+                    }
                 }
             }
+
+        } catch (Exception e) {
+            log.error("JWT Error: {}", e.getMessage());
+
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            response.getWriter().write("Invalid or expired token");
+            return;
         }
 
         filterChain.doFilter(request, response);

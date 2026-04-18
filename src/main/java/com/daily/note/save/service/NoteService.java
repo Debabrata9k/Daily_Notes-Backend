@@ -1,6 +1,9 @@
 package com.daily.note.save.service;
 
 import java.util.List;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 
 import org.modelmapper.ModelMapper;
 import org.springframework.cache.annotation.CacheEvict;
@@ -30,19 +33,21 @@ public class NoteService {
             .getAuthentication()
             .getPrincipal();
     }
-    @Cacheable(value = "notes", key = "#root.target.getCurrentUser().id")
-    public List<NoteDto> getNotes() {
-        List<Note> notes = noteRepository.findByUser(getCurrentUser());
-        return notes.stream()
+    @Cacheable(value = "notes", key = "#root.target.getCurrentUser().id + '_' + #page + '_' + #size")
+    public List<NoteDto> getNotes(int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        Page<Note> notePage = noteRepository.findByUser(getCurrentUser(), pageable);
+        return notePage.getContent().stream()
                 .map(note -> modelMapper.map(note, NoteDto.class))
                 .toList();
     }
-    @Cacheable(value = "notes_search", key = "#root.target.getCurrentUser().id + '_' + #keyword")
-    public List<NoteDto> searchNotesByTitle(String keyword) {
+    @Cacheable(value = "notes_search", key = "#root.target.getCurrentUser().id + '_' + #keyword + '_' + #page + '_' + #size")
+    public List<NoteDto> searchNotesByTitle(String keyword, int page, int size) {
         User user = getCurrentUser();
+        Pageable pageable = PageRequest.of(page, size);
 
         return noteRepository
-                .findByUserAndTitleContainingIgnoreCase(user, keyword)
+                .findByUserAndTitleContainingIgnoreCase(user, keyword, pageable)
                 .stream()
                 .map(note -> modelMapper.map(note, NoteDto.class))
                 .toList();

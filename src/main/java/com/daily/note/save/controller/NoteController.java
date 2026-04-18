@@ -10,6 +10,8 @@ import com.daily.note.save.service.NoteService;
 
 import lombok.RequiredArgsConstructor;
 
+
+
 import java.util.List;
 
 import org.springframework.http.HttpStatus;
@@ -32,13 +34,16 @@ public class NoteController {
 
 
     @GetMapping
-    public ResponseEntity<List<NoteDto>> getAllNote() {
-        return ResponseEntity.ok(noteService.getNotes());
+    public ResponseEntity<List<NoteDto>> getAllNote(@RequestParam(defaultValue = "0") int page,
+        @RequestParam(defaultValue = "10") int size) {
+        return ResponseEntity.ok(noteService.getNotes(page, size));
     }
 
     @GetMapping("/search")
-    public ResponseEntity<List<NoteDto>> searchNotes(@RequestParam String title) {
-        return ResponseEntity.ok(noteService.searchNotesByTitle(title));
+    public ResponseEntity<List<NoteDto>> searchNotes(@RequestParam String title,
+        @RequestParam(defaultValue = "0") int page,
+        @RequestParam(defaultValue = "10") int size) {
+        return ResponseEntity.ok(noteService.searchNotesByTitle(title, page, size));
     }
 
     @PostMapping

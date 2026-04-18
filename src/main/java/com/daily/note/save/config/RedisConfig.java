@@ -1,5 +1,6 @@
 package com.daily.note.save.config;
 
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.cache.*;
@@ -27,6 +28,7 @@ public class RedisConfig {
 
     // ✅ ADD THIS
     @Bean
+    @ConditionalOnProperty(name = "spring.data.redis.url")
     public RedisCacheManager cacheManager(RedisConnectionFactory connectionFactory) {
 
         Map<String, RedisCacheConfiguration> configs = new HashMap<>();

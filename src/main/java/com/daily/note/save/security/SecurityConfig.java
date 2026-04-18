@@ -16,10 +16,12 @@ public class SecurityConfig {
 
     private final JwtAuthFilter jwtAuthFilter;
     private final OAuth2SuccessHandler successHandler;
+    private final RateLimitInterceptor rateLimitInterceptor;
 
-    SecurityConfig(JwtAuthFilter jwtAuthFilter, OAuth2SuccessHandler successHandler) {
+    SecurityConfig(JwtAuthFilter jwtAuthFilter, OAuth2SuccessHandler successHandler, RateLimitInterceptor rateLimitInterceptor) {
         this.jwtAuthFilter = jwtAuthFilter;
         this.successHandler = successHandler;
+        this.rateLimitInterceptor = rateLimitInterceptor;
     }
 
     @Bean
@@ -40,6 +42,7 @@ public class SecurityConfig {
                         response.sendRedirect("dailynote://login?error=true");
                     })
                 )
+                .addFilterBefore(rateLimitInterceptor, UsernamePasswordAuthenticationFilter.class) ✅
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
                 .formLogin(form -> form.disable())
                 .httpBasic(basic -> basic.disable());

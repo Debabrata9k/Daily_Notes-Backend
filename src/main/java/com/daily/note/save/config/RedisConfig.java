@@ -1,5 +1,9 @@
 package com.daily.note.save.config;
 
+import java.time.Duration;
+import java.util.HashMap;
+import java.util.Map;
+
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -7,32 +11,31 @@ import org.springframework.data.redis.cache.*;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.serializer.*;
 
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.fasterxml.jackson.databind.ObjectMapper;
-
-import java.time.Duration;
-import java.util.HashMap;
-import java.util.Map;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 
 @Configuration
 public class RedisConfig {
 
-    @SuppressWarnings("removal")
-     @Bean
+    @Bean
     public RedisCacheConfiguration cacheConfiguration() {
 
         ObjectMapper objectMapper = new ObjectMapper();
         objectMapper.registerModule(new JavaTimeModule());
+        objectMapper.findAndRegisterModules();
+        objectMapper.disable(com.fasterxml.jackson.databind.SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
 
         GenericJackson2JsonRedisSerializer serializer =
                 new GenericJackson2JsonRedisSerializer(objectMapper);
 
         return RedisCacheConfiguration.defaultCacheConfig()
                 .entryTtl(Duration.ofMinutes(10))
+                .disableCachingNullValues()
                 .serializeValuesWith(
                         RedisSerializationContext.SerializationPair.fromSerializer(serializer)
                 );
     }
+
     @Bean
     @ConditionalOnProperty(name = "spring.data.redis.url")
     public RedisCacheManager cacheManager(RedisConnectionFactory connectionFactory) {
@@ -48,6 +51,7 @@ public class RedisConfig {
         return RedisCacheManager.builder(connectionFactory)
                 .cacheDefaults(cacheConfiguration())
                 .withInitialCacheConfigurations(configs)
+                .transactionAware()
                 .build();
     }
 }

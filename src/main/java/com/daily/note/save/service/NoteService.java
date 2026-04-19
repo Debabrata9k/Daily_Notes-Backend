@@ -27,25 +27,19 @@ public class NoteService {
     private final NoteRepository noteRepository;
     private final ModelMapper modelMapper;
 
-    // ✅ keep private (no need to expose)
     private User getCurrentUser() {
         return (User) SecurityContextHolder
                 .getContext()
                 .getAuthentication()
                 .getPrincipal();
     }
-
-    // ✅ expose only ID for caching (safe)
     public Long getCurrentUserId() {
         return getCurrentUser().getId();
     }
-
-    // =========================
-    // 📌 GET NOTES
-    // =========================
     @Cacheable(
         value = "notes",
-        key = "#root.target.getCurrentUserId() + '_' + #page + '_' + #size"
+        key = "#root.target.getCurrentUserId() + '_' + #page + '_' + #size",
+        unless = "#result == null || #result.isEmpty()"
     )
     public List<NoteDto> getNotes(int page, int size) {
 
@@ -58,13 +52,10 @@ public class NoteService {
                 .map(note -> modelMapper.map(note, NoteDto.class))
                 .toList();
     }
-
-    // =========================
-    // 🔍 SEARCH NOTES
-    // =========================
     @Cacheable(
         value = "notes_search",
-        key = "#root.target.getCurrentUserId() + '_' + #keyword + '_' + #page + '_' + #size"
+        key = "#root.target.getCurrentUserId() + '_' + #keyword + '_' + #page + '_' + #size",
+        unless = "#result == null || #result.isEmpty()"
     )
     public List<NoteDto> searchNotesByTitle(String keyword, int page, int size) {
 
@@ -77,10 +68,6 @@ public class NoteService {
                 .map(note -> modelMapper.map(note, NoteDto.class))
                 .toList();
     }
-
-    // =========================
-    // ➕ CREATE NOTE
-    // =========================
     @Caching(evict = {
         @CacheEvict(value = "notes", allEntries = true),
         @CacheEvict(value = "notes_search", allEntries = true)
@@ -95,10 +82,6 @@ public class NoteService {
         Note savedNote = noteRepository.save(note);
         return modelMapper.map(savedNote, NoteDto.class);
     }
-
-    // =========================
-    // ✏️ UPDATE NOTE
-    // =========================
     @Caching(evict = {
         @CacheEvict(value = "notes", allEntries = true),
         @CacheEvict(value = "notes_search", allEntries = true)
@@ -116,10 +99,6 @@ public class NoteService {
         Note updatedNote = noteRepository.save(note);
         return modelMapper.map(updatedNote, NoteDto.class);
     }
-
-    // =========================
-    // ❌ DELETE NOTE
-    // =========================
     @Caching(evict = {
         @CacheEvict(value = "notes", allEntries = true),
         @CacheEvict(value = "notes_search", allEntries = true)

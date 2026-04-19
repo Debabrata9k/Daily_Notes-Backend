@@ -7,6 +7,9 @@ import org.springframework.data.redis.cache.*;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.serializer.*;
 
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import java.time.Duration;
 import java.util.HashMap;
 import java.util.Map;
@@ -15,18 +18,21 @@ import java.util.Map;
 public class RedisConfig {
 
     @SuppressWarnings("removal")
-    @Bean
+     @Bean
     public RedisCacheConfiguration cacheConfiguration() {
+
+        ObjectMapper objectMapper = new ObjectMapper();
+        objectMapper.registerModule(new JavaTimeModule());
+
+        GenericJackson2JsonRedisSerializer serializer =
+                new GenericJackson2JsonRedisSerializer(objectMapper);
+
         return RedisCacheConfiguration.defaultCacheConfig()
                 .entryTtl(Duration.ofMinutes(10))
                 .serializeValuesWith(
-                        RedisSerializationContext.SerializationPair.fromSerializer(
-                                new GenericJackson2JsonRedisSerializer()
-                        )
+                        RedisSerializationContext.SerializationPair.fromSerializer(serializer)
                 );
     }
-
-    // ✅ ADD THIS
     @Bean
     @ConditionalOnProperty(name = "spring.data.redis.url")
     public RedisCacheManager cacheManager(RedisConnectionFactory connectionFactory) {

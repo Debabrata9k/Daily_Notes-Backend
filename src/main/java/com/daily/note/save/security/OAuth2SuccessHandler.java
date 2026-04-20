@@ -20,14 +20,8 @@ import lombok.RequiredArgsConstructor;
 @Component
 @RequiredArgsConstructor
 public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
-
     private final JwtUtil jwtUtil;
     private final UserRepository userRepository;
-
-    // public OAuth2SuccessHandler(JwtUtil jwtUtil) {
-    //     this.jwtUtil = jwtUtil;
-    // }
-
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response,
                                         Authentication authentication) throws IOException, ServletException {
@@ -52,5 +46,4 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
                 + "&name=" + URLEncoder.encode(user.getName(), StandardCharsets.UTF_8);
         getRedirectStrategy().sendRedirect(request, response, redirectUrl);
     }
-
 }

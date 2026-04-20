@@ -31,21 +31,17 @@ import org.springframework.web.bind.annotation.PathVariable;
 @RequiredArgsConstructor
 public class NoteController {
     private final NoteService noteService;
-
-
     @GetMapping
     public ResponseEntity<List<NoteDto>> getAllNote(@RequestParam(defaultValue = "0") int page,
         @RequestParam(defaultValue = "10") int size) {
         return ResponseEntity.ok(noteService.getNotes(page, size));
     }
-
     @GetMapping("/search")
     public ResponseEntity<List<NoteDto>> searchNotes(@RequestParam String title,
         @RequestParam(defaultValue = "0") int page,
         @RequestParam(defaultValue = "10") int size) {
         return ResponseEntity.ok(noteService.searchNotesByTitle(title, page, size));
     }
-
     @PostMapping
     public ResponseEntity<NoteDto> createNewNote(@RequestBody AddNoteDto addNoteDto) {
         return ResponseEntity.status(HttpStatus.CREATED).body(noteService.createNewNote(addNoteDto));
@@ -54,12 +50,9 @@ public class NoteController {
     public ResponseEntity<NoteDto> updateNote(@PathVariable Long id, @RequestBody AddNoteDto addNoteDto) {
         return ResponseEntity.ok(noteService.updateNote(id, addNoteDto));
     }
-
     @DeleteMapping("/{id}")
     public ResponseEntity<NoteDto> deleteNote(@PathVariable Long id) {
         noteService.deleteNote(id);
         return ResponseEntity.noContent().build();
     }
-    
-
 }

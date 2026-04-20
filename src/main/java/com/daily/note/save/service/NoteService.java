@@ -23,10 +23,8 @@ import lombok.RequiredArgsConstructor;
 @Service
 @RequiredArgsConstructor
 public class NoteService {
-
     private final NoteRepository noteRepository;
     private final ModelMapper modelMapper;
-
     private User getCurrentUser() {
         return (User) SecurityContextHolder
                 .getContext()
@@ -42,12 +40,9 @@ public class NoteService {
         unless = "#result == null || #result.isEmpty()"
     )
     public List<NoteDto> getNotes(int page, int size) {
-
         User user = getCurrentUser();
         Pageable pageable = PageRequest.of(page, size);
-
         Page<Note> notePage = noteRepository.findByUser(user, pageable);
-
         return notePage.getContent().stream()
                 .map(note -> modelMapper.map(note, NoteDto.class))
                 .toList();
@@ -58,10 +53,8 @@ public class NoteService {
         unless = "#result == null || #result.isEmpty()"
     )
     public List<NoteDto> searchNotesByTitle(String keyword, int page, int size) {
-
         User user = getCurrentUser();
         Pageable pageable = PageRequest.of(page, size);
-
         return noteRepository
                 .findByUserAndTitleContainingIgnoreCase(user, keyword, pageable)
                 .stream()
@@ -73,12 +66,9 @@ public class NoteService {
         @CacheEvict(value = "notes_search", allEntries = true)
     })
     public NoteDto createNewNote(AddNoteDto addNoteDto) {
-
         User user = getCurrentUser();
-
         Note note = modelMapper.map(addNoteDto, Note.class);
         note.setUser(user);
-
         Note savedNote = noteRepository.save(note);
         return modelMapper.map(savedNote, NoteDto.class);
     }
@@ -87,15 +77,11 @@ public class NoteService {
         @CacheEvict(value = "notes_search", allEntries = true)
     })
     public NoteDto updateNote(Long id, AddNoteDto addNoteDto) {
-
         User user = getCurrentUser();
-
         Note note = noteRepository.findByIdAndUser(id, user)
                 .orElseThrow(() -> new IllegalArgumentException("Note not found"));
-
         note.setTitle(addNoteDto.getTitle());
         note.setContent(addNoteDto.getContent());
-
         Note updatedNote = noteRepository.save(note);
         return modelMapper.map(updatedNote, NoteDto.class);
     }
@@ -104,12 +90,9 @@ public class NoteService {
         @CacheEvict(value = "notes_search", allEntries = true)
     })
     public void deleteNote(Long id) {
-
         User user = getCurrentUser();
-
         Note note = noteRepository.findByIdAndUser(id, user)
                 .orElseThrow(() -> new IllegalArgumentException("Note not found"));
-
         noteRepository.delete(note);
     }
 }

@@ -8,5 +8,4 @@ import com.daily.note.save.entity.User;
 
 public interface UserRepository extends JpaRepository<User, Long> {
     Optional<User> findByEmail(String email);
-
 }

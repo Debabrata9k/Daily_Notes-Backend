@@ -20,7 +20,6 @@ import lombok.Setter;
 @NoArgsConstructor
 @Table(name = "users")
 public class User implements UserDetails{
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -28,19 +27,15 @@ public class User implements UserDetails{
     @Column(unique = true)
     private String email;
     private String password;
-
     private boolean verified = false;
     private String otp;
     private LocalDateTime otpExpiry;
-    
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private java.util.List<Note> notes;
-
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return List.of();
     }
-
     @Override
     public String getUsername() {
         return this.email;

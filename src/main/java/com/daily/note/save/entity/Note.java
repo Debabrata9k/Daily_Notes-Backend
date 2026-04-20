@@ -23,9 +23,7 @@ public class Note {
     private String content;
     @CreationTimestamp
     private LocalDateTime createdAt;
-    
     @ManyToOne
     @JoinColumn(name = "user_id")
     private User user;
-
 }

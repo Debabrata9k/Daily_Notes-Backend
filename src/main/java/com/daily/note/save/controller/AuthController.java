@@ -24,7 +24,6 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class AuthController {
     private final AuthService authService;
-
     @PostMapping("/signup")
     public ResponseEntity<SignupResposeDto> signup(@RequestBody SignupRequestDto signupRequestDto) {
         authService.signup(signupRequestDto);

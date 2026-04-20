@@ -13,17 +13,14 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
-
     private final JwtAuthFilter jwtAuthFilter;
     private final OAuth2SuccessHandler successHandler;
     private final RateLimitInterceptor rateLimitInterceptor;
-
     SecurityConfig(JwtAuthFilter jwtAuthFilter, OAuth2SuccessHandler successHandler, RateLimitInterceptor rateLimitInterceptor) {
         this.jwtAuthFilter = jwtAuthFilter;
         this.successHandler = successHandler;
         this.rateLimitInterceptor = rateLimitInterceptor;
     }
-
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http

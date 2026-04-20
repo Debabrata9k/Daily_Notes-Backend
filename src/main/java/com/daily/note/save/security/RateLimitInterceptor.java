@@ -18,42 +18,30 @@ import lombok.RequiredArgsConstructor;
 @Component
 @RequiredArgsConstructor
 public class RateLimitInterceptor extends OncePerRequestFilter {
-
-     private final StringRedisTemplate redisTemplate;
-
-    private static final int LIMIT = 60; // requests per minute
-
+    private final StringRedisTemplate redisTemplate;
+    private static final int LIMIT = 60;
     @Override
     protected void doFilterInternal(HttpServletRequest request,
                                     HttpServletResponse response,
                                     FilterChain filterChain)
             throws ServletException, IOException {
-
-        // 🔑 Get user (from JWT)
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-
         String userKey;
-
         if (auth != null && auth.isAuthenticated() && auth.getPrincipal() != null) {
             userKey = auth.getName(); // usually email or username
         } else {
             userKey = request.getRemoteAddr(); // fallback
         }
-
         String key = "rate_limit:" + userKey;
-
         Long count = redisTemplate.opsForValue().increment(key);
-
         if (count != null && count == 1) {
             redisTemplate.expire(key, Duration.ofMinutes(1));
         }
-
         if (count != null && count > LIMIT) {
             response.setStatus(429);
             response.getWriter().write("Too many requests");
             return;
         }
-
         filterChain.doFilter(request, response);
     }
 }

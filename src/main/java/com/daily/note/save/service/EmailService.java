@@ -1,17 +1,13 @@
 package com.daily.note.save.service;
-
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpEntity;
 import org.springframework.scheduling.annotation.Async;
 
-import java.util.List;
-
-import sibApi.ApiClient;
-import sibApi.Configuration;
-import sibApi.TransactionalEmailsApi;
-import sibModel.SendSmtpEmail;
-import sibModel.SendSmtpEmailSender;
-import sibModel.SendSmtpEmailTo;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
+
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -23,24 +19,26 @@ public class EmailService {
     @Async
     public void sendOtp(String to, String otp) {
         try {
-            ApiClient client = Configuration.getDefaultApiClient();
-            client.setApiKey(apiKey);
+            RestTemplate restTemplate = new RestTemplate();
 
-            TransactionalEmailsApi api = new TransactionalEmailsApi();
+            String url = "https://api.brevo.com/v3/smtp/email";
 
-            SendSmtpEmail email = new SendSmtpEmail();
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            headers.set("api-key", apiKey);
 
-            email.setSubject("OTP Verification");
+            String body = """
+            {
+              "sender": {"name": "Daily Notes", "email": "notesdaili@gmail.com"},
+              "to": [{"email": "%s"}],
+              "subject": "OTP Verification",
+              "htmlContent": "<h2>Your OTP: %s</h2><p>Valid for 5 minutes</p>"
+            }
+            """.formatted(to, otp);
 
-            email.setHtmlContent("<h2>Your OTP: " + otp + "</h2>");
+            HttpEntity<String> request = new HttpEntity<>(body, headers);
 
-            email.setSender(new SendSmtpEmailSender()
-                    .email("your_verified_email@example.com"));
-
-            email.setTo(List.of(new SendSmtpEmailTo().email(to)));
-
-            api.sendTransacEmail(email);
-
+            restTemplate.postForEntity(url, request, String.class);
         } catch (Exception e) {
             e.printStackTrace();
         }

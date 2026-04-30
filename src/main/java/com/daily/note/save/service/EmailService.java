@@ -1,21 +1,48 @@
 package com.daily.note.save.service;
 
-import org.springframework.mail.SimpleMailMessage;
-import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Async;
+
+import java.util.List;
+
+import sibApi.ApiClient;
+import sibApi.Configuration;
+import sibApi.TransactionalEmailsApi;
+import sibModel.SendSmtpEmail;
+import sibModel.SendSmtpEmailSender;
+import sibModel.SendSmtpEmailTo;
 import org.springframework.stereotype.Service;
 import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
 public class EmailService {
-    private final JavaMailSender mailSender;
+    @Value("${brevo.api.key}")
+    private String apiKey;
+
     @Async
     public void sendOtp(String to, String otp) {
-        SimpleMailMessage mail = new SimpleMailMessage();
-        mail.setTo(to);
-        mail.setSubject("Verify your Daily Notes account");
-        mail.setText("Your OTP is: " + otp + "\nValid for 5 minutes.");
-        mailSender.send(mail);
+        try {
+            ApiClient client = Configuration.getDefaultApiClient();
+            client.setApiKey(apiKey);
+
+            TransactionalEmailsApi api = new TransactionalEmailsApi();
+
+            SendSmtpEmail email = new SendSmtpEmail();
+
+            email.setSubject("OTP Verification");
+
+            email.setHtmlContent("<h2>Your OTP: " + otp + "</h2>");
+
+            email.setSender(new SendSmtpEmailSender()
+                    .email("your_verified_email@example.com"));
+
+            email.setTo(List.of(new SendSmtpEmailTo().email(to)));
+
+            api.sendTransacEmail(email);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 }

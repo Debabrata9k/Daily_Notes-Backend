@@ -129,6 +129,11 @@
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-oauth2-client</artifactId>
 		</dependency>
+<dependency>
+    <groupId>com.sendinblue</groupId>
+    <artifactId>sib-api-v3-sdk</artifactId>
+    <version>8.5.0</version>
+</dependency>
 
 		<!-- ...existing code... -->
 	</dependencies>
